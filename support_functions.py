@@ -150,3 +150,27 @@ def rawDataReorganise(data):
     data['cost'] = data['sell_price'] - data['margin']
     data_A, data_B, data_C, data_D, data_E = createProductDataFrames(data)
     return data, data_A, data_B, data_C, data_D, data_E
+
+
+def create_weekly_data(data):
+    """
+    Resample the data to weekly frequency, aggregating sales by sum and other metrics by mean.
+    Also add a sequential week number starting from 1 for the first sales week,
+    and a calendar week number (ISO week).
+    """
+    df_weekly = data.resample('W').agg({
+        'sales': 'sum',
+        'sell_price': 'mean',
+        'margin': 'mean',
+        'revenue': 'sum',
+        'cost': 'mean'
+    })
+    
+    # Add sequential week number starting from 1
+    df_weekly['week'] = range(1, len(df_weekly) + 1)
+    
+    # Add calendar week number (ISO week) and year
+    df_weekly['calendar_week'] = df_weekly.index.isocalendar().week
+    df_weekly['year'] = df_weekly.index.isocalendar().year
+    
+    return df_weekly
