@@ -174,3 +174,123 @@ def create_weekly_data(data):
     df_weekly['year'] = df_weekly.index.isocalendar().year
     
     return df_weekly
+
+
+
+
+
+def product_sales_summary(dfs, products=['A', 'B', 'C', 'D', 'E']):
+    
+    sales_date_range = []
+    sales_summary = []
+    price_summary = []
+    margin_summary = []
+    revenue_summary = []
+    cost_summary = []
+    for product, df_prod in zip(products, dfs):
+        # Days Analysis
+        first_day = df_prod.index.min()
+        last_day = df_prod.index.max()
+        total_days = (last_day - first_day).days + 1
+        days_with_sales = len(df_prod)
+        days_no_sales = total_days - days_with_sales
+        sales_date_range.append({
+            'Product': product,
+            'FirstSaleDate': first_day,
+            'LastSaleDate': last_day,
+            'TotalDays': total_days,
+            'DaysWithSales': days_with_sales,
+            'DaysWithNoSales': days_no_sales
+        })
+        # Sales Analysis
+        total_sales = df_prod['sales'].sum()
+        avg_daily_sales = df_prod['sales'].mean()
+        max_daily_sales = df_prod['sales'].max()
+        min_daily_sales = df_prod['sales'].min()
+        st_dev_daily_sales = df_prod['sales'].std()
+        avg_sale_price = df_prod['sell_price'].mean()
+        avg_margin = df_prod['margin'].mean()
+        avg_revenue = df_prod['revenue'].mean()
+        sales_summary.append({
+            'Product': product,
+            'TotalSales': total_sales,
+            'AvgDailySales': avg_daily_sales,
+            'MaxDailySales': max_daily_sales,
+            'MinDailySales': min_daily_sales,
+            'StdDevofDailySales': st_dev_daily_sales,
+            'AvgSalePrice': avg_sale_price,
+            'AvgMargin': avg_margin,
+            'AvgRevenue': avg_revenue
+        })
+        # Price Analysis
+        avg_price = df_prod['sell_price'].mean()
+        min_price = df_prod['sell_price'].min()
+        max_price = df_prod['sell_price'].max()
+        mode_price = df_prod['sell_price'].mode()[0]
+        median_price = df_prod['sell_price'].median()
+        lower_quartile_price = df_prod['sell_price'].quantile(0.25)
+        upper_quartile_price = df_prod['sell_price'].quantile(0.75)
+        std_dev_price = df_prod['sell_price'].std()
+        price_summary.append({
+            'Product': product,
+            'AvgPrice': avg_price,
+            'MinPrice': min_price,
+            'MaxPrice': max_price,
+            'ModePrice': mode_price,
+            'MedianPrice': median_price,
+            'LowerQuartilePrice': lower_quartile_price,
+            'UpperQuartilePrice': upper_quartile_price,
+            'StdDevPrice': std_dev_price
+        })
+        # Margin Analysis
+        avg_margin = df_prod['margin'].mean()
+        min_margin = df_prod['margin'].min()
+        max_margin = df_prod['margin'].max()
+        std_dev_margin = df_prod['margin'].std()
+        margin_summary.append({
+            'Product': product,
+            'AvgMargin': avg_margin,
+            'MinMargin': min_margin,
+            'MaxMargin': max_margin,
+            'StdDevMargin': std_dev_margin
+        })
+        # Cost Analysis
+        avg_cost = df_prod['cost'].mean()
+        min_cost = df_prod['cost'].min()
+        max_cost = df_prod['cost'].max()
+        std_dev_cost = df_prod['cost'].std()
+        cost_summary.append({
+            'Product': product,
+            'AvgCost': avg_cost,
+            'MinCost': min_cost,
+            'MaxCost': max_cost,
+            'StdDevCost': std_dev_cost
+        })
+        # Revenue Analysis
+        total_revenue = df_prod['revenue'].sum()
+        avg_daily_revenue = df_prod['revenue'].mean()
+        max_daily_revenue = df_prod['revenue'].max()
+        min_daily_revenue = df_prod['revenue'].min()
+        std_dev_daily_revenue = df_prod['revenue'].std()
+        revenue_summary.append({
+            'Product': product,
+            'TotalRevenue': total_revenue,
+            'AvgDailyRevenue': avg_daily_revenue,
+            'MaxDailyRevenue': max_daily_revenue,
+            'MinDailyRevenue': min_daily_revenue,
+            'StdDevDailyRevenue': std_dev_daily_revenue
+        })
+    sales_range_df = pd.DataFrame(sales_date_range)
+    print("Sales Date Range by Product:")
+    print(sales_range_df.to_string(index=False))
+    print("\nSales Summary by Product:")
+    print(pd.DataFrame(sales_summary).to_string(index=False))
+    print("\nPrice Summary by Product:")
+    print(pd.DataFrame(price_summary).to_string(index=False))
+    print("\nMargin Summary by Product:")
+    print(pd.DataFrame(margin_summary).to_string(index=False))
+    print("\nCost Summary by Product:")
+    print(pd.DataFrame(cost_summary).to_string(index=False))
+    print("\nRevenue Summary by Product:")
+    print(pd.DataFrame(revenue_summary).to_string(index=False)) 
+    
