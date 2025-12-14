@@ -147,4 +147,5 @@ def rawDataReorganise(data):
     data = create_date_time_index(data).copy(deep=True)
     data = change_product_name(data).copy(deep=True)
     data['revenue'] = data['sell_price'] * data['sales']
-    return data
+    data_A, data_B, data_C, data_D, data_E = createProductDataFrames(data)
+    return data, data_A, data_B, data_C, data_D, data_E
