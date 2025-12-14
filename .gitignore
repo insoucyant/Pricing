@@ -29,3 +29,6 @@ dist/
 
 # results and caches
 results/
+
+# data folder
+data/
