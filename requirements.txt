@@ -1,0 +1,16 @@
+# Requirements for the Rohlik forecasting notebook
+# Pinning key packages installed in the workspace environment
+pygam==0.11.0
+numpy==2.3.5
+scipy==1.16.3
+pandas
+statsmodels
+matplotlib
+seaborn
+scikit-learn
+# tooling
+jupyter
+ipykernel
+# Optional / helpers
+pathlib
+# Note: some packages are left unpinned to allow flexibility; pin exact versions if reproducibility is required.
