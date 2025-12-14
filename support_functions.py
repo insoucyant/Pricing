@@ -11,57 +11,17 @@ import pandas as pd
 # - createProductDataFrames: Create separate dataframes for each product.
 # - change_column_names: Change column names based on the product type.  
 
-def change_product_name(fdf: pd.DataFrame) -> pd.DataFrame:  # create_long_df
-    """
-    Convert product hash values to readable product IDs in the `product_id` column.
 
-    Parameters
-    - fdf: DataFrame with a `product_id` column containing hash strings.
-
-    Returns
-    - DataFrame with `product_id` values replaced by 'product_A'..'product_E' where matching.
-    """
-
-    fdf = fdf.copy()
-
-    fdf['product_id'] = np.where(
-        fdf['product_id'] == '58fba35ac3591d27507b733ea4a6dc1c8b1c2cf04ddbbd6b3d4a4da3a3c8fd3c',
-        'product_A',
-        fdf['product_id']
-    )
-    fdf['product_id'] = np.where(
-        fdf['product_id'] == 'b2141f3341478ce4ee74781f7da95dcbc3ee6d9a5309659d5163026415e98bb9',
-        'product_B',
-        fdf['product_id']
-    )
-
-    fdf['product_id'] = np.where(
-        fdf['product_id'] == '82b9ca49aa8b92fd1cf0963b52fb1734eda3232303c669d02f2537ecdcbd8314',
-        'product_C',
-        fdf['product_id']
-    )
-
-    fdf['product_id'] = np.where(
-        fdf['product_id'] == '42586e958c1c38c359654b9f2e9384a3c76377619fed4d958949c0305e25b85c',
-        'product_D',
-        fdf['product_id']
-    )
-
-    fdf['product_id'] = np.where(
-        fdf['product_id'] == '56154e85b0dacaa9d34e280f4470e0dd2db370c22d98ec775c7d2fd6827eba5c',
-        'product_E',
-        fdf['product_id']
-    )
-    return fdf
 
 def create_date_time_index(data):
     """
-        Create a datetime index from the date column
+        Create a datetime index from the date column and calculate revenue.
     """
     data = data.copy()
     data['date'] = pd.to_datetime(data['date'])
     data.set_index('date', inplace=True)
     data.sort_index(inplace=True)
+    
     return data
 def create_temporal_features(data):
     """
@@ -121,10 +81,70 @@ def change_column_names(fdf, product_name):
         # Rename column in fdf if present
         if col in fdf.columns:
             fdf = fdf.rename(columns={col: new_name})
-            if col in ['sales', 'sell_price']:
+            if col in ['sales', 'sell_price', 'revenue']:
                 fdf = create_log_values(fdf,new_name)
         else:
             print(f"Column {col} not found in {fdf}")
             
     fdf.drop(columns=['product_id'], inplace=True)
     return fdf
+
+
+
+
+
+
+def change_product_name(fdf: pd.DataFrame) -> pd.DataFrame:  # create_long_df
+    """
+    Convert product hash values to readable product IDs in the `product_id` column.
+
+    Parameters
+    - fdf: DataFrame with a `product_id` column containing hash strings.
+
+    Returns
+    - DataFrame with `product_id` values replaced by 'product_A'..'product_E' where matching.
+    """
+
+    fdf = fdf.copy()
+
+    fdf['product_id'] = np.where(
+        fdf['product_id'] == '58fba35ac3591d27507b733ea4a6dc1c8b1c2cf04ddbbd6b3d4a4da3a3c8fd3c',
+        'product_A',
+        fdf['product_id']
+    )
+    fdf['product_id'] = np.where(
+        fdf['product_id'] == 'b2141f3341478ce4ee74781f7da95dcbc3ee6d9a5309659d5163026415e98bb9',
+        'product_B',
+        fdf['product_id']
+    )
+
+    fdf['product_id'] = np.where(
+        fdf['product_id'] == '82b9ca49aa8b92fd1cf0963b52fb1734eda3232303c669d02f2537ecdcbd8314',
+        'product_C',
+        fdf['product_id']
+    )
+
+    fdf['product_id'] = np.where(
+        fdf['product_id'] == '42586e958c1c38c359654b9f2e9384a3c76377619fed4d958949c0305e25b85c',
+        'product_D',
+        fdf['product_id']
+    )
+
+    fdf['product_id'] = np.where(
+        fdf['product_id'] == '56154e85b0dacaa9d34e280f4470e0dd2db370c22d98ec775c7d2fd6827eba5c',
+        'product_E',
+        fdf['product_id']
+    )
+    return fdf
+
+def rawDataReorganise(data):
+    """
+        Sort Date Time
+        Sort Product Name
+        Add Revenue Column
+    """
+    data = data.copy(deep=True)
+    data = create_date_time_index(data).copy(deep=True)
+    data = change_product_name(data).copy(deep=True)
+    data['revenue'] = data['sell_price'] * data['sales']
+    return data

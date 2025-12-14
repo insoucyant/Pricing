@@ -22,3 +22,5 @@ def log_correlation_plot(df, title_suffix=''):
 
     print('Log Sell Price and Log Sales Correlations:')
     print(price_corr.round(2))
+    
+    return price_corr
