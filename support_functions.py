@@ -78,13 +78,13 @@ def createProductDataFrames(data):
     return df_product_A, df_product_B, df_product_C, df_product_D, df_product_E
 
 def change_column_names(fdf, product_name):
-    col_names = ['sell_price', 'margin', 'sales']
+    col_names = ['sell_price', 'margin', 'sales','cost','revenue','running_week']
     for col in col_names:
         new_name = col + '_' + product_name
         # Rename column in fdf if present
         if col in fdf.columns:
             fdf = fdf.rename(columns={col: new_name})
-            if col in ['sales', 'sell_price', 'revenue']:
+            if col in ['sales', 'sell_price', 'revenue','running_week']:
                 fdf = create_log_values(fdf,new_name)
         else:
             print(f"Column {col} not found in {fdf}")
@@ -166,15 +166,15 @@ def create_weekly_data(data):
         'sell_price': 'mean',
         'margin': 'mean',
         'revenue': 'sum',
-        'cost': 'mean'
-    })
+        'cost': 'mean' 
+    }).round(2)
     
     # Add sequential week number starting from 1
-    df_weekly['week'] = range(1, len(df_weekly) + 1)
+    df_weekly['running_week'] = range(1, len(df_weekly) + 1)
     
     # Add calendar week number (ISO week) and year
-    df_weekly['calendar_week'] = df_weekly.index.isocalendar().week
-    df_weekly['year'] = df_weekly.index.isocalendar().year
+    # df_weekly['calendar_week'] = df_weekly.index.isocalendar().week
+    # df_weekly['year'] = df_weekly.index.isocalendar().year
     
     return df_weekly
 
@@ -183,6 +183,7 @@ def create_weekly_data_all_products(dfs, products=products):
     dfs_weekly = {}
     for product, df_prod in zip(products, dfs):
         df_weekly = create_weekly_data(df_prod)
+        df_weekly['product_id'] = product
         globals()[f'df_weekly_{product}'] = df_weekly
     dfs_weekly = [df_weekly_A, df_weekly_B, df_weekly_C, df_weekly_D, df_weekly_E]
     return dfs_weekly
