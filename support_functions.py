@@ -10,8 +10,11 @@ import pandas as pd
 # - create_log_values: Create log values of a numeric column. 
 # - createProductDataFrames: Create separate dataframes for each product.
 # - change_column_names: Change column names based on the product type.  
+# - rawDataReorganise: Reorganise raw data by sorting date, changing product names, and adding revenue column.
+# - create_weekly_data: Resample data to weekly frequency with aggregations.
+# - product_sales_summary: Generate summary statistics for sales, price, margin, cost, and
 
-
+products=['A', 'B', 'C', 'D', 'E']
 
 def create_date_time_index(data):
     """
@@ -175,7 +178,14 @@ def create_weekly_data(data):
     
     return df_weekly
 
-
+def create_weekly_data_all_products(dfs, products=products):
+    # Create weekly data for each product
+    dfs_weekly = {}
+    for product, df_prod in zip(products, dfs):
+        df_weekly = create_weekly_data(df_prod)
+        globals()[f'df_weekly_{product}'] = df_weekly
+    dfs_weekly = [df_weekly_A, df_weekly_B, df_weekly_C, df_weekly_D, df_weekly_E]
+    return dfs_weekly
 
 
 
