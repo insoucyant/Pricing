@@ -36,6 +36,10 @@ def temporal_sales_correlation_plot(df, title_suffix=''):
     available_temporal = [col for col in temporal_cols if col in df.columns]
     available_sales = [col for col in log_sales_cols if col in df.columns]
     
+    # If log_running_week exists, it's weekly data - remove is_weekend
+    if 'log_running_week' in available_temporal and 'is_weekend' in available_temporal:
+        available_temporal.remove('is_weekend')
+    
     if not available_temporal or not available_sales:
         raise ValueError('Missing required temporal or log_sales columns')
     
