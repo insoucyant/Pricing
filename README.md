@@ -1,6 +1,6 @@
 # Pricing
 
-Pricing repository for the Rohlik project.
+Pricing repository for dummy data project.
 
 This repository will contain models, data pipelines, and scripts used for pricing analysis and experiments.
 
