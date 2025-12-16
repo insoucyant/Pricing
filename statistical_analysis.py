@@ -1,7 +1,11 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+import numpy as np
+import statsmodels.api as sm
 from xgboost import XGBRegressor
+from pygam import LinearGAM, s
+from statsmodels.regression.quantile_regression import QuantReg
 from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error
 
 
@@ -150,5 +154,301 @@ def xgb_regression(X_train, y_train, X_test, y_test, prediction_variable):
         'test_r2': test_r2,
         'feature_importance': feature_importance
     }
+    
+    return results
+
+
+def ols_regression(X_train, y_train, X_test, y_test, prediction_variable):
+    """
+    Perform OLS regression using statsmodels and evaluate on test set.
+    
+    Parameters:
+    -----------
+    X_train : DataFrame or array
+        Training features
+    y_train : Series or array
+        Training target
+    X_test : DataFrame or array
+        Testing features
+    y_test : Series or array
+        Testing target
+    prediction_variable : str
+        Name of the prediction variable (for display purposes)
+    
+    Returns:
+    --------
+    results : dict
+        Dictionary containing model, predictions, and metrics
+    """
+    # Convert to DataFrames if needed for consistent column handling
+    if not isinstance(X_train, pd.DataFrame):
+        X_train = pd.DataFrame(X_train)
+    if not isinstance(X_test, pd.DataFrame):
+        X_test = pd.DataFrame(X_test)
+    if not isinstance(y_train, pd.Series):
+        y_train = pd.Series(y_train)
+    if not isinstance(y_test, pd.Series):
+        y_test = pd.Series(y_test)
+    
+    print(f"Training OLS for {prediction_variable}...")
+    
+    # Add constant to features
+    X_train_sm = sm.add_constant(X_train)
+    X_test_sm = sm.add_constant(X_test)
+    
+    # Fit OLS model
+    model = sm.OLS(y_train, X_train_sm).fit()
+    
+    # Make predictions
+    y_pred_train = model.predict(X_train_sm)
+    y_pred_test = model.predict(X_test_sm)
+    
+    # Calculate metrics
+    train_mse = mean_squared_error(y_train, y_pred_train)
+    test_mse = mean_squared_error(y_test, y_pred_test)
+    train_rmse = train_mse ** 0.5
+    test_rmse = test_mse ** 0.5
+    train_mae = mean_absolute_error(y_train, y_pred_train)
+    test_mae = mean_absolute_error(y_test, y_pred_test)
+    train_r2 = r2_score(y_train, y_pred_train)
+    test_r2 = r2_score(y_test, y_pred_test)
+    
+    # Print results
+    print("\n" + "="*70)
+    print(f"OLS Regression Results for {prediction_variable}")
+    print("="*70)
+    print(f"Training RMSE: {train_rmse:.4f}")
+    print(f"Testing RMSE:  {test_rmse:.4f}")
+    print(f"Training MAE:  {train_mae:.4f}")
+    print(f"Testing MAE:   {test_mae:.4f}")
+    print(f"Training R²:   {train_r2:.4f}")
+    print(f"Testing R²:    {test_r2:.4f}")
+    print("="*70)
+    
+    # Feature importance (coefficients)
+    feature_importance = pd.Series(
+        model.params[1:],  # Exclude constant
+        index=X_train.columns
+    ).sort_values(key=abs, ascending=False)
+    
+    print(f"\nFeature Coefficients:")
+    print(feature_importance)
+    print(f"\nModel Summary:")
+    print(model.summary())
+    
+    # Store results
+    results = {
+        'model': model,
+        'y_pred_train': y_pred_train,
+        'y_pred_test': y_pred_test,
+        'train_rmse': train_rmse,
+        'test_rmse': test_rmse,
+        'train_mae': train_mae,
+        'test_mae': test_mae,
+        'train_r2': train_r2,
+        'test_r2': test_r2,
+        'feature_importance': feature_importance
+    }
+    
+    return results
+
+
+def pygam_regression(X_train, y_train, X_test, y_test, prediction_variable):
+    """
+    Perform PyGAM (Generalized Additive Model) regression and evaluate on test set.
+    
+    Parameters:
+    -----------
+    X_train : DataFrame or array
+        Training features
+    y_train : Series or array
+        Training target
+    X_test : DataFrame or array
+        Testing features
+    y_test : Series or array
+        Testing target
+    prediction_variable : str
+        Name of the prediction variable (for display purposes)
+    
+    Returns:
+    --------
+    results : dict
+        Dictionary containing model, predictions, and metrics
+    """
+    # Convert to DataFrames if needed for consistent column handling
+    if not isinstance(X_train, pd.DataFrame):
+        X_train = pd.DataFrame(X_train)
+    if not isinstance(X_test, pd.DataFrame):
+        X_test = pd.DataFrame(X_test)
+    if not isinstance(y_train, pd.Series):
+        y_train = pd.Series(y_train)
+    if not isinstance(y_test, pd.Series):
+        y_test = pd.Series(y_test)
+    
+    print(f"Training PyGAM for {prediction_variable}...")
+    
+    # Build GAM formula with spline terms for each feature
+    # Use cubic splines (default) with automatic smoothing
+    n_features = X_train.shape[1]
+    gam_formula = s(0)
+    for i in range(1, n_features):
+        gam_formula += s(i)
+    
+    # Fit GAM model
+    model = LinearGAM(gam_formula)
+    model.fit(X_train.values, y_train.values)
+    
+    # Make predictions
+    y_pred_train = model.predict(X_train.values)
+    y_pred_test = model.predict(X_test.values)
+    
+    # Calculate metrics
+    train_mse = mean_squared_error(y_train, y_pred_train)
+    test_mse = mean_squared_error(y_test, y_pred_test)
+    train_rmse = train_mse ** 0.5
+    test_rmse = test_mse ** 0.5
+    train_mae = mean_absolute_error(y_train, y_pred_train)
+    test_mae = mean_absolute_error(y_test, y_pred_test)
+    train_r2 = r2_score(y_train, y_pred_train)
+    test_r2 = r2_score(y_test, y_pred_test)
+    
+    # Print results
+    print("\n" + "="*70)
+    print(f"PyGAM Regression Results for {prediction_variable}")
+    print("="*70)
+    print(f"Training RMSE: {train_rmse:.4f}")
+    print(f"Testing RMSE:  {test_rmse:.4f}")
+    print(f"Training MAE:  {train_mae:.4f}")
+    print(f"Testing MAE:   {test_mae:.4f}")
+    print(f"Training R²:   {train_r2:.4f}")
+    print(f"Testing R²:    {test_r2:.4f}")
+    print("="*70)
+    
+    # Feature importance (partial dependence statistics)
+    # Calculate contribution of each feature based on derivative magnitude
+    feature_importance = pd.Series(
+        [np.mean(np.abs(np.gradient(model.partial_dependence(i)[0]))) 
+         for i in range(n_features)],
+        index=X_train.columns
+    ).sort_values(ascending=False)
+    
+    print(f"\nFeature Importance (based on partial dependence):")
+    print(feature_importance)
+    print(f"\nGAM Summary:")
+    print(model.summary())
+    
+    # Store results
+    results = {
+        'model': model,
+        'y_pred_train': y_pred_train,
+        'y_pred_test': y_pred_test,
+        'train_rmse': train_rmse,
+        'test_rmse': test_rmse,
+        'train_mae': train_mae,
+        'test_mae': test_mae,
+        'train_r2': train_r2,
+        'test_r2': test_r2,
+        'feature_importance': feature_importance
+    }
+    
+    return results
+
+
+def pygam_quantile_regression(X_train, y_train, X_test, y_test, prediction_variable, quantiles=[0.025, 0.5, 0.975]):
+    """
+    Perform quantile regression for multiple quantiles.
+    
+    Parameters:
+    -----------
+    X_train : DataFrame or array
+        Training features
+    y_train : Series or array
+        Training target
+    X_test : DataFrame or array
+        Testing features
+    y_test : Series or array
+        Testing target
+    prediction_variable : str
+        Name of the prediction variable (for display purposes)
+    quantiles : list
+        List of quantiles to estimate (default: [0.025, 0.5, 0.975])
+    
+    Returns:
+    --------
+    results : dict
+        Dictionary containing models and predictions for each quantile
+    """
+    # Convert to DataFrames if needed for consistent column handling
+    if not isinstance(X_train, pd.DataFrame):
+        X_train = pd.DataFrame(X_train)
+    if not isinstance(X_test, pd.DataFrame):
+        X_test = pd.DataFrame(X_test)
+    if not isinstance(y_train, pd.Series):
+        y_train = pd.Series(y_train)
+    if not isinstance(y_test, pd.Series):
+        y_test = pd.Series(y_test)
+    
+    print(f"Training Quantile Regression for {prediction_variable}...")
+    print(f"Quantiles: {quantiles}")
+    
+    results = {}
+    
+    # Fit models for each quantile
+    for q in quantiles:
+        print(f"\n{'='*70}")
+        print(f"Quantile: {q}")
+        print(f"{'='*70}")
+        
+        # Add constant to features
+        X_train_sm = sm.add_constant(X_train)
+        X_test_sm = sm.add_constant(X_test)
+        
+        # Fit quantile regression model using statsmodels
+        model = QuantReg(y_train, X_train_sm).fit(q=q)
+        
+        # Make predictions
+        y_pred_train = model.predict(X_train_sm)
+        y_pred_test = model.predict(X_test_sm)
+        
+        # Calculate metrics
+        train_mse = mean_squared_error(y_train, y_pred_train)
+        test_mse = mean_squared_error(y_test, y_pred_test)
+        train_rmse = train_mse ** 0.5
+        test_rmse = test_mse ** 0.5
+        train_mae = mean_absolute_error(y_train, y_pred_train)
+        test_mae = mean_absolute_error(y_test, y_pred_test)
+        train_r2 = r2_score(y_train, y_pred_train)
+        test_r2 = r2_score(y_test, y_pred_test)
+        
+        # Print results
+        print(f"Training RMSE: {train_rmse:.4f}")
+        print(f"Testing RMSE:  {test_rmse:.4f}")
+        print(f"Training MAE:  {train_mae:.4f}")
+        print(f"Testing MAE:   {test_mae:.4f}")
+        print(f"Training R²:   {train_r2:.4f}")
+        print(f"Testing R²:    {test_r2:.4f}")
+        
+        # Feature coefficients
+        feature_importance = pd.Series(
+            model.params[1:],  # Exclude constant
+            index=X_train.columns
+        ).sort_values(key=abs, ascending=False)
+        
+        print(f"\nFeature Coefficients:")
+        print(feature_importance)
+        
+        # Store results for this quantile
+        results[q] = {
+            'model': model,
+            'y_pred_train': y_pred_train,
+            'y_pred_test': y_pred_test,
+            'train_rmse': train_rmse,
+            'test_rmse': test_rmse,
+            'train_mae': train_mae,
+            'test_mae': test_mae,
+            'train_r2': train_r2,
+            'test_r2': test_r2,
+            'feature_importance': feature_importance
+        }
     
     return results
