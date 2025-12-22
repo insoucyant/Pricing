@@ -7,9 +7,9 @@ import pandas as pd
 # - change_product_name: Convert product hash values to readable product IDs.
 # - create_date_time_index: Create a datetime index from the date column.
 # - create_temporal_features: Create temporal features from the date column/index.
-# - create_log_values: Create log values of a numeric column. 
+# - create_log_values: Create log values of a numeric column.
 # - createProductDataFrames: Create separate dataframes for each product.
-# - change_column_names: Change column names based on the product type.  
+# - change_column_names: Change column names based on the product type.
 # - rawDataReorganise: Reorganise raw data by sorting date, changing product names, and adding revenue column.
 # - create_weekly_data: Resample data to weekly frequency with aggregations.
 # - product_sales_summary: Generate summary statistics for sales, price, margin, cost, and
@@ -24,7 +24,7 @@ def create_date_time_index(data):
     data['date'] = pd.to_datetime(data['date'])
     data.set_index('date', inplace=True)
     data.sort_index(inplace=True)
-    
+
     return data
 def create_temporal_features(data):
     """
@@ -32,7 +32,7 @@ def create_temporal_features(data):
         Adds: dayofweek, is_weekend (1 if Saturday/Sunday, else 0), dayofmonth,
         dayofyear, month, year
     """
-    
+
     # Ensure index is datetime
     if not pd.api.types.is_datetime64_any_dtype(data.index):
         if 'date' in data.columns:
@@ -63,7 +63,7 @@ def createProductDataFrames(data):
     """
         Create separate dataframes for each product
     """
-    data = data.copy() 
+    data = data.copy()
     filt = data['product_id'] == 'product_A'
     df_product_A = data.loc[filt]
     filt = data['product_id'] == 'product_B'
@@ -88,7 +88,7 @@ def change_column_names(fdf, product_name):
                 fdf = create_log_values(fdf,new_name)
         else:
             print(f"Column {col} not found in {fdf}")
-            
+
     fdf.drop(columns=['product_id'], inplace=True)
     return fdf
 
@@ -166,16 +166,16 @@ def create_weekly_data(data):
         'sell_price': 'mean',
         'margin': 'mean',
         'revenue': 'sum',
-        'cost': 'mean' 
+        'cost': 'mean'
     }).round(2)
-    
+
     # Add sequential week number starting from 1
     df_weekly['running_week'] = range(1, len(df_weekly) + 1)
-    
+
     # Add calendar week number (ISO week) and year
     # df_weekly['calendar_week'] = df_weekly.index.isocalendar().week
     # df_weekly['year'] = df_weekly.index.isocalendar().year
-    
+
     return df_weekly
 
 def create_weekly_data_all_products(dfs, products=products):
@@ -191,7 +191,7 @@ def create_weekly_data_all_products(dfs, products=products):
 
 
 def product_sales_summary(dfs, products=['A', 'B', 'C', 'D', 'E']):
-    
+
     sales_date_range = []
     sales_summary = []
     price_summary = []
@@ -303,5 +303,4 @@ def product_sales_summary(dfs, products=['A', 'B', 'C', 'D', 'E']):
     print("\nCost Summary by Product:")
     print(pd.DataFrame(cost_summary).to_string(index=False))
     print("\nRevenue Summary by Product:")
-    print(pd.DataFrame(revenue_summary).to_string(index=False)) 
-    
+    print(pd.DataFrame(revenue_summary).to_string(index=False))
